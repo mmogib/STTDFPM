@@ -1,0 +1,12 @@
+version: "3.8"
+services: 
+  app:
+    container_name: ircproject
+    build: 
+      context: .
+      args: 
+        - JULIA_VERSION=1.8.5
+    ports: 
+      - "2225:1234"
+    volumes: 
+      - .:/home/julia/code

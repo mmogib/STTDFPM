@@ -1,0 +1,103 @@
+using LinearAlgebra, Random, BenchmarkTools, Dates, Printf
+# using CUTEst, NLPModels
+using CSV
+# using Flux
+using DataFrames
+# using Evolutionary
+files_to_include = [
+    "types.jl",
+    "algorithm.jl",
+    "functions.jl",
+    "projections.jl",
+    "helpers.jl",
+    # "test_proplems.jl",
+]
+
+include.(files_to_include)
+# testProblems = Vector{TestProblem}(undef, 5)
+# dingTestProblems = Vector{TestProblem}(undef, 8)
+# testProblems1(dim=100) = [
+#     ARWHEADProblem(dim=dim),
+#     Ding2017DIAGONAL6Problem(dim=dim),
+#     Ding2017PIProblem(dim=dim),
+#     Ding2017PIIProblem(dim=dim),
+#     DIXON3DQProblem(dim=dim),
+#     ENGVAL1Problem(dim=dim),
+#     GENHUMPSProblem(dim=dim),
+#     PENALTY1Problem(dim=dim),
+#     DIXMAANHProblem(dim=dim),
+#     DIXMAANIProblem(dim=dim)
+# ]
+testProblems2(; x0::Vector{<:Real}=ones(100)) = [
+    PExponetialIII(x0=x0),
+    PPolynomialI(x0=x0),
+    PSmoothSine(x0=x0),
+    PExponetialSineCosine(x0=x0),
+    PPolynomialSineCosine(x0=x0),
+    PExponetialI(x0=x0),
+    PModifiedTrigI(x0=x0),
+    PNonsmoothSine(x0=x0),
+    PModifiedNonsmoothSine(x0=x0),
+    PModifiedNonsmoothSine2(x0=x0),
+    PLogarithmic(x0=x0),
+    PNonmoothLogarithmic(x0=x0),
+    ENGVAL1Problem(x0=x0),
+    ARWHEADProblemProjectedOnBox(x0=x0)
+]
+## [*] Run to optimize by Genetic Algorithm
+# probs = ["ARWHEAD", "PENALTY1", "DIXON3DQ", "GENHUMPS", "ENGVAL1", "DIXMAANH", "DIXMAANI"]
+# optimizeParameters(PModifiedTridiagonal(; x0=ones(1000)))
+# optimizeParameters(DIXON3DQ)
+
+
+
+## [*] Run to find paramters 
+# max_itrs = [200, 200, 200, 200, 100_000, 100_000, 100_000, 100_000]
+# param_sizes = [500, 500, 500, 500, 500, 1000, 1000, 1000]
+# rng = MersenneTwister(230505134600)
+# df = runNumericalExperiments(BBSTTDFPParams, testProblems2(; x0=ones(1000)), 100_000, 100; rng=rng)
+# vscodedisplay(df)
+
+
+
+# [*] Run to check and refine the parameters
+# bbstt_params = Parameters(1.2, 0.1, 0.5, 1e-30, 1e30, 0.7, 10e-4)
+# t = 0.2524169909588043, β=0.34041386233869275,  σ=0.01406410062563701, γ=1.2346615542139057, αmin=0.6268309920531687, αmax=1.3258751247160359, r=0.44410078335505965, ψ=0.2821487864284251",",
+# "t =0.3585009753853383, β=0.492122682417391,  σ=0.497537881028407, γ=1.5814902703237146, αmin=0.953599849152456, αmax=1.2817690054929352, r=0.616235416791046, ψ=0.539182638949355",
+# "t =0.3585009753853383, β=0.492122682417391,  σ=0.497537881028407, γ=1.5814902703237146, αmin=0.953599849152456, αmax=1.2817690054929352, r=0.616235416791046, ψ=0.539182638949355"
+
+# BEST 
+# "t=0.5882164448220442, β=0.627628822629869,  σ=0.038522974946086475, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=1.052508680465795, r=0.12207595744012179, ψ=0.590559356867268"
+# "t=0.4445162033013488, β=0.69128998256615,  σ=0.08811426339087847, γ=1.5468016355751548, αmin=0.5027036732320993, αmax=0.937734987789602, r=0.4044910549439251, ψ=0.44977542004637305"
+# "t=0.4445162033013488, β=0.69128998256615,  σ=0.09142030042118976, γ=1.5468016355751548, αmin=0.5027036732320993, αmax=0.937734987789602, r=0.4044910549439251, ψ=0.44977542004637305"
+# "t=0.4445162033013488, β=0.69128998256615,  σ=0.09142030042118976, γ=1.5468016355751548, αmin=0.5027036732320993, αmax=0.9517738204010553, r=0.4044910549439251, ψ=0.44977542004637305"
+# "t=0.4445162033013488, β=0.69128998256615,  σ=0.09142030042118976, γ=1.5468016355751548, αmin=0.5027036732320993, αmax=0.9517738204010553, r=0.24350230082089652, ψ=0.44977542004637305"
+# "t=0.4445162033013488, β=0.69128998256615,  σ=0.09142030042118976, γ=1.5468016355751548, αmin=0.5027036732320993, αmax=0.9517738204010553, r=0.24350230082089652, ψ=0.511472586042109"
+
+# "t=0.5882164448220442, β=0.627628822629869,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=1.052508680465795, r=0.12207595744012179, ψ=0.59055935686726"
+# "t=0.5882164448220442, β=0.627628822629869,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.59055935686726"
+# "t=0.5882164448220442, β=0.627628822629869,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.20929112731122723"
+# "t=0.11408250586841473, β=0.627628822629869,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.20929112731122723"
+# "t=0.24933224708327617, β=0.627628822629869,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.20929112731122723"
+# "t=0.11408250586841473, β=0.6570240538036174,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.20929112731122723"
+dfs = runExperiment(BBSTTDFPAlgorithm; dim=500)
+vscodedisplay.(dfs)
+# fdfs = filter(df -> all(df[:, :iters] .!= ""), dfs)
+# zfdfs = zip(1:length(fdfs), map(df -> sum(df[:, :iters]), fdfs)) |>
+#         collect |> d -> sort(d; lt=(a, b) -> last(a) < last(b))
+# vscodedisplay(fdfs[first.(zfdfs)][1])
+# println(fdfs[first.(zfdfs)][1][:, :params][1])
+
+## [*] Run to replicate Ding 2017 experiments  
+# dfs = runNumericalExperiments(Ding2017Problem, testProblems; save=false)
+# vscodedisplay(dfs)
+
+
+## [*] Run to replicate MOPCG 2023 experiments  
+dfs = runNumericalExperiments(MOPCGAlgorithm, testProblems2(x0=ones(50_000));
+    save=false,
+    options=AlgorithmOptions(2000, 1e-11)
+)
+vscodedisplay(dfs)
+
+
