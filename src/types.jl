@@ -40,6 +40,7 @@ struct BBSTTDFPParams
     η::Union{Nothing,Float64}
     ξ::Union{Nothing,Float64}
 end
+BBSTTDFPParams() = throw("No parameters provided. Please check the file algorithms_parameters.jl")
 BBSTTDFPParams(p::BBSTTDFPParams, σ::Float64) = BBSTTDFPParams(p.t, p.β, σ, p.γ, p.αmin, p.αmax, p.r, p.ψ, nothing, nothing)
 BBSTTDFPParams(t::Float64, β::Float64, σ::Float64, γ::Float64, αmin::Float64, αmax::Float64, r::Float64, ψ::Float64) = BBSTTDFPParams(t, β, σ, γ, αmin, αmax, r, ψ, nothing, nothing)
 Base.show(io::IO, p::BBSTTDFPParams) =

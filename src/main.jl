@@ -10,8 +10,8 @@ saveit = true
 algorithms = [
     (BBSTTDFPAlgorithm, true),
     # (BBSTTDFPAlgorithm, false),
-    # (BBSTTDFPAlgorithmNoIN, true),
-    (BBSTTDFPAlgorithmNoIN, false),
+    (BBSTTDFPAlgorithmNoIN, true),
+    # (BBSTTDFPAlgorithmNoIN, false),
     (MOPCGAlgorithm, false),
     (CGDFPAlgorithm, false),
     (AHDFPMAlgorithm, false)
@@ -37,13 +37,11 @@ dfs = runExperiment(algorithms, dims, options; saveit=saveit)
 pyplot()
 plts = plotResultsProfiles(algorithms, dfs)
 p1 = plot(plts..., layout=(3, 1), size=(900, 800))
-zdt = now(tz"Asia/Riyadh")
-saving_file_name = "./results/profiles_$(Dates.format(zdt,"yyyy_mm_dd_HH_MM"))"
-savefig(p1, "$saving_file_name.png")
-savefig(p1, "$saving_file_name.svg")
-savefig(p1, "$saving_file_name.pdf")
-savefig(p1, "$saving_file_name.eps")
-numericalResultDF2CSV(vcat(dfs...), "$saving_file_name.csv")
+output_folder = outputfolder("./results/profiles")
+map(["png", "svg", "pdf", "eps"]) do ext
+    savefig(p1, "$output_folder/profile.$ext")
+end
+numericalResultDF2CSV(vcat(dfs...), "$output_folder/profile.csv")
 # pgfplotsx()
 # p2 = plot(plts..., layout=(3, 1), size=(800, 900), tex_output_standalone=true)
 # savefig(p, "./results/latex/profiles.tex")

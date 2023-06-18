@@ -217,21 +217,19 @@ function str2params(strparams::String, rng::MersenneTwister;
 end
 
 function outputfolder(root::String="./results")
-    t = now()
-    dayfolder = Dates.format(t, "yyyy_mm_dd")
-    hourfolder = Dates.format(t, "HH_MM")
+    zdt = now(tz"Asia/Riyadh")
+    dayfolder = Dates.format(zdt, "yyyy_mm_dd")
+    hourfolder = Dates.format(zdt, "HH_MM")
     root_dir = mkpath("$root/$dayfolder/$hourfolder")
     return root_dir
 end
 
-function outputfilename(name::String, extension::String;
-    root::String="./results",
-    suffix::Union{Nothing,String}=nothing)
+function outputfilename(name::String, extension::String; root::String="./results", suffix::Union{Nothing,String}=nothing)
     root_dir = outputfolder(root)
     filename = if isnothing(suffix)
         "$root_dir/$name.$extension"
     else
-        "$root_dir/$name_$suffix.$extension"
+        "$root_dir/$(name)_$suffix.$extension"
     end
     filename
 end
@@ -350,7 +348,7 @@ function runNumericalExperiments(::Type{MOPCGAlgorithm},
         println("MOPCG($(length(problem.x0))) - ($counter/$total) Solving $(problem.name)...")
         counter += 1
         MOPCG(problem; options=options, params=params)
-    end |> res -> numericalResult2DataFrame(res, algorithm="MOPCGAlgorithm")
+    end |> res -> numericalResult2DataFrame(res, algorithm="MOPCG")
 
 
     df = vcat(dfs...)
@@ -393,7 +391,7 @@ function runNumericalExperiments(::Type{FISAPAlgorithm},
         println("ISAP($(length(problem.x0))) - ($counter/$total) Solving $(problem.name)...")
         counter += 1
         FISAP(problem; options=options, params=params)
-    end |> res -> numericalResult2DataFrame(res, algorithm="FISAPAlgorithm ")
+    end |> res -> numericalResult2DataFrame(res, algorithm="FISAPAlgorithm")
 
 
     df = vcat(dfs...)
@@ -434,12 +432,12 @@ function runNumericalExperiments(::Type{CGDFPAlgorithm},
         println("CGDFP($(length(problem.x0))) - ($counter/$total) Solving $(problem.name)...")
         counter += 1
         CGDFP(problem; options=options, params=params)
-    end |> res -> numericalResult2DataFrame(res, algorithm="CGDFPAlgorithm ")
+    end |> res -> numericalResult2DataFrame(res, algorithm="CGDFPM")
 
 
     df = vcat(dfs...)
     if save
-        filename = outputfilename("CGDFP", "csv")
+        filename = outputfilename("CGDFPM", "csv")
         numericalResultDF2CSV(df, filename)
     end
 
@@ -474,7 +472,7 @@ function runNumericalExperiments(::Type{AHDFPMAlgorithm},
         println("AHDFPM($(length(problem.x0))) - ($counter/$total) Solving $(problem.name)...")
         counter += 1
         AHDFPM(problem; options=options, params=params)
-    end |> res -> numericalResult2DataFrame(res, algorithm="AHDFPMAlgorithm ")
+    end |> res -> numericalResult2DataFrame(res, algorithm="AHDFPM")
 
 
     df = vcat(dfs...)
@@ -527,53 +525,13 @@ end
 # end
 function runExperiment(::Type{BBSTTDFPAlgorithmNoIN}, dim::Int64, options::AlgorithmOptions; save::Bool=false, newparams::Bool=false)
     problems = createTestProlems(dim)
-    # t=0.11408250586841473, β=0.6570240538036174,  
-    # σ=0.008575295412900363, γ=1.8928223633049506, 
-    # αmin=0.10912531544765902, αmax=0.8312657796763663, 
-    # r=0.12207595744012179, ψ=0.20929112731122723
-    params0 = BBSTTDFPParams(
-        0.11,
-        0.5,
-        0.01,
-        1.8,
-        1e-30,
-        1e+30,
-        0.1,
-        0.5,
-        newparams ? 0.001 : nothing,
-        newparams ? 0.6 : nothing
-    )
-    params1 = BBSTTDFPParams(
-        0.11408250586841473,
-        0.6570240538036174,
-        0.008575295412900363,
-        1.8928223633049506,
-        0.10912531544765902,
-        0.8312657796763663,
-        0.12207595744012179,
-        0.20929112731122723,
-        newparams ? 0.001 : nothing,
-        newparams ? 0.6 : nothing
-    )
-    params2 = BBSTTDFPParams(
-        0.19091055694541392,
-        0.8248500773070584,
-        0.6059149417443106,
-        1.0160210808836148,
-        0.968177563496758,
-        1.8227259069163115,
-        0.9507650425301077,
-        0.8808475746290094,
-        newparams ? 0.030826250174403214 : nothing,
-        newparams ? 0.3719729951071617 : nothing
-    )
-
+    params = getAlgorithmParams("numerical_expr", options.tol; newparams=newparams)
     dfs = runNumericalExperiments(
         BBSTTDFPAlgorithmNoIN,
         problems;
         save=save,
         options=options,
-        params=params0
+        params=params
     )
     dfs
 end
@@ -581,19 +539,8 @@ end
 function runNumericalExperiments(::Type{BBSTTDFPAlgorithmNoIN},
     ps::Vector{TestProblem};
     save::Bool=false,
-    options::AlgorithmOptions=AlgorithmOptions(1000, 1e-6),
-    params::BBSTTDFPParams=BBSTTDFPParams(
-        0.11408250586841473,
-        0.6570240538036174,
-        0.008575295412900363,
-        1.8928223633049506,
-        0.10912531544765902,
-        0.8312657796763663,
-        0.12207595744012179,
-        0.20929112731122723,
-        0.001,
-        0.6
-    )
+    options::AlgorithmOptions=AlgorithmOptions(),
+    params::BBSTTDFPParams=BBSTTDFPParams()
 )
     # t=0.11408250586841473, β=0.6570240538036174,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.20929112731122723
     println("Running our BBSTTDFP_NO_INERTIAL Algorithm")
@@ -605,12 +552,12 @@ function runNumericalExperiments(::Type{BBSTTDFPAlgorithmNoIN},
         counter += 1
         BBSTTDFP(problem, params=params, options=options; inertial=false)
 
-    end |> res -> numericalResult2DataFrame(res, algorithm="BBSTTDFPNoINAlgorithm($title_appendage)")
+    end |> res -> numericalResult2DataFrame(res, algorithm="STTDFPM")
 
 
     df = vcat(dfs...)
     if save
-        filename = outputfilename("BBSTTDFP_NO_INERTIAL_$title_appendage", "csv")
+        filename = outputfilename("STTDFPM_$title_appendage", "csv")
         numericalResultDF2CSV(df, filename)
     end
 
@@ -621,22 +568,11 @@ end
 function runNumericalExperiments(::Type{BBSTTDFPAlgorithm},
     ps::Vector{TestProblem};
     save::Bool=false,
-    options::AlgorithmOptions=AlgorithmOptions(1000, 1e-6),
-    params::BBSTTDFPParams=BBSTTDFPParams(
-        0.11408250586841473,
-        0.6570240538036174,
-        0.008575295412900363,
-        1.8928223633049506,
-        0.10912531544765902,
-        0.8312657796763663,
-        0.12207595744012179,
-        0.20929112731122723,
-        0.001,
-        0.6
-    )
+    options::AlgorithmOptions=AlgorithmOptions(),
+    params::BBSTTDFPParams=BBSTTDFPParams()
 )
-    # t=0.11408250586841473, β=0.6570240538036174,  σ=0.008575295412900363, γ=1.8928223633049506, αmin=0.10912531544765902, αmax=0.8312657796763663, r=0.12207595744012179, ψ=0.20929112731122723
     println("Running our BBSTTDF Algorithm")
+
     counter = 1
     total = length(ps)
     title_appendage = isnothing(params.η) ? "old_params" : "new_params"
@@ -645,12 +581,12 @@ function runNumericalExperiments(::Type{BBSTTDFPAlgorithm},
         counter += 1
         BBSTTDFP(problem, params=params, options=options)
 
-    end |> res -> numericalResult2DataFrame(res, algorithm="BBSTTDFPAlgorithm($title_appendage)")
+    end |> res -> numericalResult2DataFrame(res, algorithm="ISTTDFPM")
 
 
     df = vcat(dfs...)
     if save
-        filename = outputfilename("BBSTTDFP_$title_appendage", "csv")
+        filename = outputfilename("ISTTDFPM_$title_appendage", "csv")
         numericalResultDF2CSV(df, filename)
     end
 
@@ -660,53 +596,13 @@ end
 
 function runExperiment(::Type{BBSTTDFPAlgorithm}, dim::Int64, options::AlgorithmOptions; save::Bool=false, newparams::Bool=false)
     problems = createTestProlems(dim)
-    # t=0.11408250586841473, β=0.6570240538036174,  
-    # σ=0.008575295412900363, γ=1.8928223633049506, 
-    # αmin=0.10912531544765902, αmax=0.8312657796763663, 
-    # r=0.12207595744012179, ψ=0.20929112731122723
-    params0 = BBSTTDFPParams(
-        0.11, # 0.98
-        0.5,
-        0.01,
-        1.8,
-        1e-30,
-        1e+30,
-        0.1,
-        0.5,
-        newparams ? 0.001 : nothing,
-        newparams ? 0.6 : nothing
-    )
-    params1 = BBSTTDFPParams(
-        0.11408250586841473,
-        0.6570240538036174,
-        0.008575295412900363,
-        1.8928223633049506,
-        0.10912531544765902,
-        0.8312657796763663,
-        0.12207595744012179,
-        0.20929112731122723,
-        newparams ? 0.001 : nothing,
-        newparams ? 0.6 : nothing
-    )
-    params2 = BBSTTDFPParams(
-        0.19091055694541392,
-        0.8248500773070584,
-        0.6059149417443106,
-        1.0160210808836148,
-        0.968177563496758,
-        1.8227259069163115,
-        0.9507650425301077,
-        0.8808475746290094,
-        newparams ? 0.030826250174403214 : nothing,
-        newparams ? 0.3719729951071617 : nothing
-    )
-
+    params = getAlgorithmParams("numerical_expr", options.tol; newparams=newparams)
     dfs = runNumericalExperiments(
         BBSTTDFPAlgorithm,
         problems;
         save=save,
         options=options,
-        params=params0
+        params=params
     )
     dfs
 end
@@ -762,6 +658,72 @@ function plotResultsProfiles(algorithms::Vector{Tuple{T,Bool}} where {T<:DataTyp
     plts
 
 end
+# function perf(T, logplot)
+#     # %PERF    Performace profiles
+#     # %
+#     # % PERF(T,logplot)-- produces a performace profile as described in
+#     # %   Benchmarking optimization software with performance profiles,
+#     # %   E.D. Dolan and J.J. More', 
+#     # %   Mathematical Programming, 91 (2002), 201--213.
+#     # % Each column of the matrix T defines the performance data for a solver.
+#     # % Failures on a given problem are represented by a NaN.
+#     # % The optional argument logplot is used to produce a 
+#     # % log (base 2) performance plot.
+#     # %
+#     # % This function is based on the perl script of Liz Dolan.
+#     # %
+#     # % Jorge J. More', June 2004
+
+#     if (nargin < 2)
+#         logplot = 0
+#     end
+
+#     colors = ['r' 'm' 'g' 'b' 'k' 'y' 'm' 'y' 'r']
+#     # %lines   = [':' '-' '-.' '--'];
+#     markers = ['d' '>' 'o' '+' 'd' '^' '*' 'o' '+']
+
+#     [np, ns] = size(T)
+
+#     # % Minimal performance per solver
+
+#     minperf = min(T, [], 2)
+
+#     # % Compute ratios and divide by smallest element in each row.
+
+#     r = zeros(np, ns)
+#     for p = 1:np
+#         r(p, :) = T(p, :) / minperf(p)
+#     end
+
+#     if (logplot)
+#         r = log2(r)
+#     end
+
+#     max_ratio = max(max(r))
+
+#     # % Replace all NaN's with twice the max_ratio and sort.
+
+#     r(isnan(r)) = 2 * max_ratio
+#     r = sort(r)
+
+#     # % Plot stair graphs with markers.
+
+#     # clf;
+#     for s = 1:ns
+#         [xs, ys] = stairs(r(:, s), (1:np) / np)
+#         option = ['-' colors(s) markers(s)]
+#         #  plot(xs,ys,option,'MarkerSize',2.5);
+#         #  hold on;
+#     end
+
+#     # % Axis properties are set so that failures are not shown,
+#     # % but with the max_ratio data points shown. This highlights
+#     # % the "flatline" effect.
+
+#     axis([0 1.1 * max_ratio 0 1])
+
+#     # % Legends and title should be added.
+# end
 function createTestProlems(dim::Int64)
     # PExponetialIII(x0=x0),
     # problem1 = createTestProlems(
@@ -1027,7 +989,125 @@ function getSavedData(flder_where_saved::String, m, n, r)
     ATA, initial_point, c, original_signal, observed_signal
 end
 
-MSI(original, reconstructed) = (1 / length(original)) * norm(reconstructed - original)^2
+function MSI(original, reconstructed)
+    (1 / length(original)) * norm(reconstructed - original)^2
+end
 
 
-PSNR(original, reconstructed) = 10 * log10(norm(reconstructed, Inf)^2 / MSI(original, reconstructed))
+function PSNR(original, reconstructed)
+    10 * log10(norm(reconstructed, Inf)^2 / MSI(original, reconstructed))
+end
+function readPaperData(dfs::DataFrame, names::Vector{String}; newnames::Union{Nothing,Vector{String}}=nothing)
+    new_names = isnothing(newnames) ? names : newnames
+    dfs = transform(dfs, :algorithm => ByRow(strip) => :algorithm)
+    data = map(enumerate(names)) do (i, name)
+        filter(row -> row[:algorithm] == name, dfs) |> df -> transform(df, :algorithm => ByRow(_ -> new_names[i]) => :algorithm)
+    end
+    data
+
+end
+function readPaperData(input_file::String, names::Vector{String}; newnames::Union{Nothing,Vector{String}}=nothing)
+    dfs = CSV.File(input_file) |> DataFrame
+    readPaperData(dfs, names; newnames=newnames)
+end
+function plotPerformanceProfile(T::Matrix{<:Number}, title::String, labels::Vector{String}; colors::Union{ColorPalette,Vector{Symbol}}=palette(:tab10), logscale::Bool=true)
+    (w, h) = Plots._plot_defaults[:size]
+    (_, _, max_ratio) = performance_profile_data(T)
+    p = performance_profile(PlotsBackend(),
+        T, labels;
+        size=(1.2w, h),
+        logscale,
+        title=title,
+        xlabel=L"\tau",
+        ylabel=L"\rho(\tau)",
+        legendfontsize=8,
+        linestyle=:dash,
+        palette=colors,
+        linewidth=2.5,
+        minorgrid=true, leg=:bottomright
+    )
+    p = if (logscale)
+        xs = 1:ceil(max_ratio + 0.5)
+        ys = 0:0.1:1.01
+        plot(p,
+            xticks=(xs, map(x -> "$(Int(x))", xs)),
+            yticks=(ys, map(x -> "$x", ys)),
+            framestyle=:origin
+        )
+    else
+        p
+    end
+    p
+
+end
+
+function producePaperProfileImages(input_file::String)
+    colors = [:red, :black, :green, :blue, :purple]
+
+    output_folder = "./results/paper/imgs"
+
+    algo_names = [
+        "BBSTTDFPAlgorithm(old_params)",
+        "BBSTTDFPNoINAlgorithm(old_params)",
+        "MOPCGAlgorithm",
+        "CGDFPAlgorithm",
+        "AHDFPMAlgorithm"
+    ]
+    newnames = [
+        "ISTTDFPM",
+        "STTDFPM",
+        "MOPCG",
+        "CGDFPM",
+        "AHDFPM"
+    ]
+    printstyled("reading stored data in "; color=:blue)
+    printstyled("$input_file\n"; color=:blue, bold=true)
+    data = readPaperData(input_file, newnames)
+    printstyled("creating plots ...\n"; color=:green)
+
+
+    ns = length(data)
+    np, = size(data[1])
+    # 
+    plts = map([
+        (:iters, "Iterations"),
+        (:evals, "Function Evaluations"),
+        (:time, "CPU Time")]) do (item, title)
+        T = dataFrames2Matrix(data, item, np, ns)
+        printstyled("creating plots for $title \n"; color=:green)
+        p = plotPerformanceProfile(T, title, newnames; colors)
+        p, title
+    end
+    map(plts) do (p, title)
+        file_name = replace(title, " " => "_") |> lowercase
+        printstyled("saving plots for $title to file \n"; color=:reverse)
+        png_file = outputfilename(file_name, "png"; root=output_folder, suffix="performance_profiles")
+        savefig(p, png_file)
+        svg_file = outputfilename(file_name, "svg"; root=output_folder, suffix="performance_profiles")
+        savefig(p, svg_file)
+        pdf_file = outputfilename(file_name, "pdf"; root=output_folder, suffix="performance_profiles")
+        savefig(p, pdf_file)
+        eps_file = outputfilename(file_name, "eps"; root=output_folder, suffix="performance_profiles")
+        savefig(p, eps_file)
+    end
+    printstyled("Finished saving in $output_folder\n"; color=:green)
+    plts[1]
+end
+function dataFrames2Matrix(data::Vector{DataFrame}, field::Symbol, np::Int64, ns::Int64)
+
+    T = map(data) do df
+        values = df[!, field]
+        values .|> x -> isempty(x) ? NaN : Float64(x)
+    end |> d -> vcat(d...) |> d -> reshape(d, np, ns)
+    T
+end
+
+function dataFrames2Matrix(data::Vector{DataFrame}, field::Symbol)
+    ns = length(data)
+    np, = size(data[1])
+    dataFrames2Matrix(data, field, np, ns)
+end
+
+
+# val = Float64(maximum(values[findall(!isempty, values)]))
+# values |> x -> cleanVectorFromEmpty(x, 2 * val) .|> Float64

@@ -148,7 +148,7 @@ end
 function findDk(Fu0, Fu1, d0, u0, u1, r, ψ, αmin, αmax)
     y0 = Fu1 - Fu0
     s0 = u1 - u0 + r * y0
-    v1 = max(ψ * norm(d0), dot(d0, y0), norm(Fu0)^2)
+    v1 = max(ψ * norm(d0) * norm(y0), dot(d0, y0), norm(Fu0)^2)
     β1 = dot(Fu1, y0) / v1
     α12 = dot(Fu1, d0) / v1
     α11 = min(αmax, max(αmin, dot(s0, y0) / dot(y0, y0)))
@@ -178,13 +178,7 @@ function findtk(F::Function, d::Vector{Float64}, u::Vector{Float64}, σ::Float64
         arg = F(u + tk .* d)
         lhs = -dot(arg, d)
         χ = norm(arg)
-        Pηξχ = if χ <= η
-            η
-        elseif χ >= ξ
-            ξ
-        else
-            χ
-        end
+        Pηξχ = min(ξ, max(χ, η))
         rhs = σ * tk * Pηξχ * norm(d)^2
         # rhs = σ * tk * norm(d)^2
         if lhs >= rhs || tk <= 1e-5
