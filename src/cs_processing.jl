@@ -34,16 +34,16 @@ do_expriment(;
     problems = createCSProblems(ATA, vec(initial_point), vec(c), n)
     problem = problems[1]
 
-    printstyled("Solving with BBSTTDFP for experiment $name \n"; color=:cyan)
+    printstyled("Solving with STTDFPM for experiment $name \n"; color=:cyan)
     sol_bbs = BBSTTDFP(problem; options, params, inertial=false)
 
-    printstyled("Solving with IBBSTTDFP for experiment $name \n"; color=:light_magenta)
+    printstyled("Solving with ISTTDFPM for experiment $name \n"; color=:light_magenta)
     sol_ibbs = BBSTTDFP(problem; options, params, inertial=true)
 
     printstyled("Solving with AHDFPM for experiment $name \n"; color=:light_green)
     sol_ahd = AHDFPM(problem; options=options, params=AHDFPMParameters(0.6, 1.75, 0.0001, 0.001, 0.4, 2.4, 0.8, 0.1, 1))
 
-    printstyled("Solving with CGDFP for experiment $name \n"; color=:magenta)
+    printstyled("Solving with CGDFPM for experiment $name \n"; color=:magenta)
     sol_cgd = CGDFP(problem; options=options, params=CGDFPParameters(0.6, 1, 0.001, 0.7, 0.3))
 
     printstyled("Solving with MOPCG for experiment $name \n"; color=:light_red)
@@ -59,10 +59,10 @@ do_expriment(;
         :original => original_signal,
         :observed => observed_signal,
         :df => vcat(
-            getConstructedAndMSE(sol_ibbs, original_signal, n, "IBBSTTDFP", name),
-            getConstructedAndMSE(sol_bbs, original_signal, n, "BBSTTDFP", name),
+            getConstructedAndMSE(sol_ibbs, original_signal, n, "ISTTDFPM", name),
+            getConstructedAndMSE(sol_bbs, original_signal, n, "STTDFPM", name),
             getConstructedAndMSE(sol_ahd, original_signal, n, "AHDFPM", name),
-            getConstructedAndMSE(sol_cgd, original_signal, n, "CGDFP", name),
+            getConstructedAndMSE(sol_cgd, original_signal, n, "CGDFPM", name),
             getConstructedAndMSE(sol_mopcg, original_signal, n, "MOPCG", name)
         )
     )
@@ -71,10 +71,10 @@ do_expriment(;
 end
 no_of_exprs = 100
 algo_names = [
-    "IBBSTTDFP",
-    "BBSTTDFP",
+    "ISTTDFPM",
+    "STTDFPM",
     "AHDFPM",
-    "CGDFP",
+    "CGDFPM",
     "MOPCG",
 ]
 params = getAlgorithmParams("cs_expr", 1e-7; newparams=true)

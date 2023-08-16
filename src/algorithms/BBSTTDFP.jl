@@ -148,7 +148,8 @@ end
 function findDk(Fu0, Fu1, d0, u0, u1, r, ψ, αmin, αmax)
     y0 = Fu1 - Fu0
     s0 = u1 - u0 + r * y0
-    v1 = max(ψ * norm(d0) * norm(y0), dot(d0, y0), norm(Fu0)^2)
+    # v1 = max(ψ * norm(d0) * norm(y0), dot(d0, y0), norm(Fu0)^2)
+    v1 = max(ψ * norm(d0) * norm(y0), norm(Fu0)^2)
     β1 = dot(Fu1, y0) / v1
     α12 = dot(Fu1, d0) / v1
     α11 = min(αmax, max(αmin, dot(s0, y0) / dot(y0, y0)))
